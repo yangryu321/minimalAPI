@@ -5,55 +5,48 @@ using minimalAPI.Models;
 public static class UserApiExtensions
 { 
 
+
+    public static IServiceCollection UseUsersApi( this IServiceCollection services, WebApplicationBuilder builder)
+    {
+        services.AddDbContext<DataContext>(options => {
+            options.UseSqlServer(builder.Configuration.GetConnectionString("ConnectionString"));
+        });
+
+        return services;
+
+    }
+
     public static WebApplication MapUsersApi(this WebApplication app)
     {
 
-        app.MapGet("/", () => "Hello World!");
-
-        app.MapGet("/Users", async (DataContext dataContext) =>
+        app.MapGet("/Users", async (IDataAccess dataAccess) =>
         {
-            return await dataContext.Users.ToListAsync();
+            List<User> users = await dataAccess.GetAllUsersAsync();
+            return users;
         });
 
-        app.MapGet("/Users/{Id:int}", async (DataContext datacontext, int Id) =>
+        app.MapGet("/Users/{Id:int}", async (IDataAccess dataAccess, int Id) =>
         {
-            return  await datacontext.Users.FindAsync(Id);
-           
-
+            User user = await dataAccess.GetUserByIdAsync(Id);
+            return user;
         });
 
-        app.MapPost("/Users", async (DataContext datacontext, User user) =>
+        app.MapPost("/Users", async (IDataAccess dataAcces, User user) =>
         {
-            await datacontext.Users.AddAsync(user);
-            await datacontext.SaveChangesAsync();
-            Results.Accepted();
-
+            await dataAcces.CreateUser(user);
         });
 
-        app.MapPut("/Users/{Id:int}", async (DataContext datacontext, int Id, User user) =>
+        app.MapPut("/Users/{Id:int}", async (IDataAccess dataAcces, int Id, User user) =>
         {
-            if (Id != user.Id)
-                return Results.BadRequest();
-
-            datacontext.Update(user);
-            await datacontext.SaveChangesAsync();
-
-            return Results.NoContent();
+            await dataAcces.UpdateUser(Id, user);
         }
         );
 
-        app.MapDelete("/Users/{Id:int}", async (DataContext dataContext, int Id) =>
+        app.MapDelete("/Users/{Id:int}", async (IDataAccess dataAcces, int Id) =>
         {
-            var user = await dataContext.Users.FindAsync(Id);
-            if (user is null)
-                return Results.NotFound();
-
-            dataContext.Users.Remove(user);
-            await dataContext.SaveChangesAsync();
-
-            return Results.NoContent();
-
+           await dataAcces.DeleteUser(Id);
         });
+
         return app;
 
     }

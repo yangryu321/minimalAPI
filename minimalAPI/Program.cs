@@ -1,13 +1,11 @@
-using Microsoft.EntityFrameworkCore;
-using minimalAPI.DataAccess;
+using minimalAPI.Models;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddDbContext<DataContext>(options => {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("ConnectionString"));
-});
+builder.Services.UseUsersApi(builder);
+builder.Services.AddScoped<IDataAccess, SqlDataAccess>();
 
 var app = builder.Build();
-
+app.MapGet("/", () => "Hello World!");
 app.MapUsersApi();
 
 

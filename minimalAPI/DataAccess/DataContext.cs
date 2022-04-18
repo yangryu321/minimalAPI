@@ -20,7 +20,7 @@ namespace minimalAPI.DataAccess
                     Id= 1,
                     Name = "Shiyang",
                     Email = "Syljob@gmail.com",
-                    Address = "19 kensington Ave"
+                    Address = "19 kensington ve"
 
                 },
 
